@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Greenhouse Order Form</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background-color: #f4f4f4;
+    }
+    h1 {
+      text-align: center;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: left;
+    }
+    th {
+      background-color: #e0e0e0;
+    }
+    input[type="number"] {
+      width: 60px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    #output {
+      white-space: pre-wrap;
+      background: #fff;
+      padding: 10px;
+      border: 1px solid #ccc;
+    }
+  </style>
+</head>
+<body>
+  <h1>Greenhouse Order Form</h1>
+  <p>To use this form:</p>
+  <ol>
+    <li>Enter the number of plants needed in the quantity field.</li>
+    <li>Click <strong>Generate Order List</strong> to submit it to Google Sheets.</li>
+    <li>You can also view all responses from your linked sheet in real time.</li>
+  </ol>
+  <table id="plantTable">
+    <thead>
+      <tr>
+        <th>Plant Name</th>
+        <th>Greenhouse #</th>
+        <th>Quantity</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+  <button onclick="generateList()">Generate Order List</button>
+  <h2>Order Output</h2>
+  <div id="output"></div>
+
+  <script>
+    const plants = [
+      { name: "Super Olympia Mix", gh: "11" },
+      { name: "Super Olympia Red", gh: "11" },
+      { name: "Super Olympia Rose", gh: "11" },
+      { name: "Super Olympia White", gh: "11" },
+      { name: "Cocktail Gin", gh: "11" },
+      { name: "Cocktail Mix", gh: "11" },
+      { name: "Cocktail Vodka", gh: "11" },
+      { name: "Clear Crystals", gh: "13, 14" },
+      { name: "Easter Bonnet Mix", gh: "13, 14" },
+      { name: "Easter Bonnet Violet", gh: "13, 14" },
+      { name: "M.G. Mix", gh: "13, 14" },
+      { name: "M.G. Sea Breeze Mix", gh: "13, 14" },
+      { name: "Phlox Popstars Mix", gh: "13" },
+      { name: "Spring Matrix Yellow Blotch", gh: "13, 14" },
+      { name: "Spring Matrix Blueberry Thrill", gh: "13, 14" },
+      { name: "Mime mix", gh: "13" },
+      { name: "Sorbet Mix XP", gh: "13, 14" },
+      { name: "Sorbet Colormax Berry pie", gh: "13, 14" },
+      { name: "Sorbet XP Raspberry", gh: "13, 14" },
+      { name: "Sorbet XP Orange Jump Up", gh: "13, 14" },
+      { name: "Sorbet XP Yellow Blue Jump Up", gh: "13, 14" },
+      { name: "Penny Purple Picotee", gh: "13, 14" },
+      { name: "Fairway Coleus", gh: "13" },
+      { name: "Jade Coleus", gh: "13" },
+      { name: "Raspberry Parfait Dianthus", gh: "13" },
+      { name: "Ideal Mix Dianthus", gh: "13" },
+      { name: "Ideal White Fire Dianthus", gh: "13" },
+      { name: "Silver Dust", gh: "14" },
+      { name: "Obsession Mix Verbena", gh: "14" },
+      { name: "Riviera Mix Lobelia", gh: "14" },
+      { name: "Riviera Midnight Blue Lobelia", gh: "14" },
+      { name: "Riviera White Lobelia", gh: "14" },
+      { name: "Fuschia", gh: "8" },
+      { name: "Non-stop Begonia", gh: "7" },
+      { name: "Illumination Begonia", gh: "7" },
+      { name: "Bossa Nova Begonia", gh: "7" },
+      { name: "Red Hot Sally Salvia", gh: "13" },
+      { name: "Victoria Blue Salvia", gh: "13" },
+      { name: "Encanto Fiber", gh: "7" },
+      { name: "Encanto Drip", gh: "7" },
+      { name: "Strawflower Yellow", gh: "16" },
+      { name: "Upright Petunia", gh: "16" },
+      { name: "Wave Petunia", gh: "16" }
+    ];
+
+    const tbody = document.querySelector("#plantTable tbody");
+    plants.forEach((plant, index) => {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td>${plant.name}</td>
+        <td>${plant.gh}</td>
+        <td><input type="number" min="0" id="qty-${index}" /></td>
+      `;
+      tbody.appendChild(row);
+    });
+
+    function generateList() {
+      let output = "";
+      const payload = [];
+      plants.forEach((plant, index) => {
+        const qty = document.getElementById(`qty-${index}`).value;
+        if (qty && parseInt(qty) > 0) {
+          output += `${plant.name} - ${qty} (Greenhouse ${plant.gh})\n`;
+          payload.push({
+            name: plant.name,
+            gh: plant.gh,
+            quantity: qty
+          });
+        }
+      });
+
+      document.getElementById("output").textContent = output || "No plants selected.";
+
+      if (payload.length > 0) {
+        fetch("https://script.google.com/macros/s/AKfycbysoQZMhxA6WCPX9KDdQGCMzA5yKmzCcm86bUgF6a5wl53hAEmZ0VnqM96ZQAU0UrfIMA/exec", {
+          method: "POST",
+          body: JSON.stringify(payload),
+          headers: {
+            "Content-Type": "application/json"
+          }
+        })
+        .then(res => res.text())
+        .then(msg => console.log("Google Sheet Response:", msg))
+        .catch(err => console.error("Error sending to Google Sheets:", err));
+      }
+    }
+  </script>
+</body>
+</html>
